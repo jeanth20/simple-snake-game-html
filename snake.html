@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+  }
+  .github-interface {
+    background-color: #24292e;
+    color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0px 0px 10px rgba(151, 145, 145, 0.2);
+    width: 400px;
+  }
+  canvas {
+    border: 1px solid #000;
+    margin-top: 10px;
+  }
+  .block {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #000;
+    position: absolute;
+  }
+</style>
+</head>
+<body>
+<div class="github-interface">
+  <h2>Snake Game</h2>
+  <p>Use arrow keys to control the snake. Press the spacebar to spawn blocks.</p>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+</div>
+<script>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // Snake and block properties
+  let snakeX = 10;
+  let snakeY = 10;
+  let snakeSize = 20;
+  let snakeColor = "green";
+  
+  // Snake movement
+  let dx = snakeSize;
+  let dy = 0;
+
+  // Canvas dimensions
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+
+  // Blocks array
+  let blocks = [];
+
+  // Snake body segments
+  let snakeBody = [{ x: snakeX, y: snakeY }];
+
+  // Control the frame rate (lower value means slower speed)
+  const frameRate = 10 / 2; // Increase this value for a slower speed
+
+  // Generate a random position for a block
+  function generateRandomPosition() {
+    const blockX = Math.floor(Math.random() * (canvasWidth - snakeSize));
+    const blockY = Math.floor(Math.random() * (canvasHeight - snakeSize));
+    return { x: blockX, y: blockY };
+  }
+
+  // Spawn a block with a specific color
+  function spawnBlock(color) {
+    const position = generateRandomPosition();
+    blocks.push({ x: position.x, y: position.y, color: color });
+  }
+
+  // Game loop
+  function gameLoop() {
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    // Update snake position
+    snakeX += dx;
+    snakeY += dy;
+
+    // Ensure snake stays within canvas boundaries
+    if (snakeX < 0) snakeX = 0;
+    if (snakeX + snakeSize > canvasWidth) snakeX = canvasWidth - snakeSize;
+    if (snakeY < 0) snakeY = 0;
+    if (snakeY + snakeSize > canvasHeight) snakeY = canvasHeight - snakeSize;
+
+    // Check for collision with blocks and eat if possible
+    blocks.forEach((block, index) => {
+      ctx.fillStyle = block.color;
+      ctx.fillRect(block.x, block.y, snakeSize, snakeSize);
+
+      if (
+        snakeX < block.x + snakeSize &&
+        snakeX + snakeSize > block.x &&
+        snakeY < block.y + snakeSize &&
+        snakeY + snakeSize > block.y
+      ) {
+        if (block.color === "yellow") {
+          blocks.splice(index, 1);
+          snakeBody.push({ x: snakeX, y: snakeY });
+        }
+      }
+    });
+
+    // Update snake body
+    snakeBody.unshift({ x: snakeX, y: snakeY });
+    if (snakeBody.length > 1) {
+      snakeBody.pop();
+    }
+
+    // Draw the snake and its body segments
+    snakeBody.forEach((segment, index) => {
+      ctx.fillStyle = index === 0 ? snakeColor : "yellow";
+      ctx.fillRect(segment.x, segment.y, snakeSize, snakeSize);
+    });
+
+    // Call the game loop recursively after a delay
+    setTimeout(gameLoop, 1000 / frameRate);
+  }
+
+  // Handle arrow key presses and block spawning
+  document.addEventListener("keydown", (event) => {
+    switch (event.key) {
+      case "ArrowUp":
+        dx = 0;
+        dy = -snakeSize;
+        break;
+      case "ArrowDown":
+        dx = 0;
+        dy = snakeSize;
+        break;
+      case "ArrowLeft":
+        dx = -snakeSize;
+        dy = 0;
+        break;
+      case "ArrowRight":
+        dx = snakeSize;
+        dy = 0;
+        break;
+      case " ":
+        spawnBlock("yellow");
+        break;
+    }
+  });
+
+  // Start the game loop
+  gameLoop();
+</script>
+</body>
+</html>
